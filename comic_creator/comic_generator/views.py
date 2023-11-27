@@ -36,23 +36,64 @@ def generate_image(text):
 #     panels = ComicPanel.objects.all()
 #     return render(request, 'comic_generator/comic_panel.html', {'form': form, 'panels': panels})
 
+# def create_comic_panel(request):
+#     # Handling form submission 
+#     user_input_text = "Astronaut riding a horse"  # Replace with actual user input
+
+#     # Making API call to generate image
+#     API_URL = "https://xdwvg9no7pefghrn.us-east-1.aws.endpoints.huggingface.cloud"
+#     headers = {
+#         "Accept": "image/png",
+#         "Authorization": "Bearer VknySbLLTUjbxXAXCjyfaFIPwUTCeRXbFSOjwRiCxsxFyhbnGjSFalPKrpvvDAaPVzWEevPljilLVDBiTzfIbWFdxOkYJxnOPoHhkkVGzAknaOulWggusSFewzpqsNWM",
+#         "Content-Type": "application/json",
+#     }
+
+#     payload = {"inputs": user_input_text}
+#     response = requests.post(API_URL, headers=headers, json=payload)
+
+#     # Converting image to base64-encoded string
+#     image_base64 = base64.b64encode(response.content).decode('utf-8')
+
+#     # Passing the base64-encoded string to the template
+#     return render(request, 'comic_panel.html', {'image_base64': image_base64})
+
+
 def create_comic_panel(request):
-    # Handle form submission or user interaction
-    user_input_text = "Astronaut riding a horse"  # Replace with actual user input
+    if request.method == 'POST':
+        form = ComicPanelForm(request.POST)
+        if form.is_valid():
+            # Process form data
+            comic_text = form.cleaned_data['text']
 
-    # Make API call to generate image
-    API_URL = "https://xdwvg9no7pefghrn.us-east-1.aws.endpoints.huggingface.cloud"
-    headers = {
-        "Accept": "image/png",
-        "Authorization": "Bearer VknySbLLTUjbxXAXCjyfaFIPwUTCeRXbFSOjwRiCxsxFyhbnGjSFalPKrpvvDAaPVzWEevPljilLVDBiTzfIbWFdxOkYJxnOPoHhkkVGzAknaOulWggusSFewzpqsNWM",
-        "Content-Type": "application/json",
-    }
+            # Making API call to generate image
+            API_URL = "https://xdwvg9no7pefghrn.us-east-1.aws.endpoints.huggingface.cloud"
+            headers = {
+                "Accept": "image/png",
+                "Authorization": "Bearer VknySbLLTUjbxXAXCjyfaFIPwUTCeRXbFSOjwRiCxsxFyhbnGjSFalPKrpvvDAaPVzWEevPljilLVDBiTzfIbWFdxOkYJxnOPoHhkkVGzAknaOulWggusSFewzpqsNWM",
+                "Content-Type": "application/json",
+            }
 
-    payload = {"inputs": user_input_text}
-    response = requests.post(API_URL, headers=headers, json=payload)
+            payload = {"inputs": comic_text}
+            response = requests.post(API_URL, headers=headers, json=payload)
 
-    # Convert image to base64-encoded string
-    image_base64 = base64.b64encode(response.content).decode('utf-8')
+            # Check if the API call was successful
+            if response.status_code == 200:
+                # Converting image to base64-encoded string
+                image_base64 = base64.b64encode(response.content).decode('utf-8')
 
-    # Pass the base64-encoded string to the template
-    return render(request, 'comic_panel.html', {'image_base64': image_base64})
+                # Save form data along with the image URL
+                comic_panel = form.save(commit=False)
+                comic_panel.image_url = image_base64  # Save the base64-encoded image
+                comic_panel.save()
+
+                return redirect('create_comic_panel')  # Redirect after successful submission
+            else:
+                # Handle API error, e.g., log or display an error message
+                pass
+    else:
+        form = ComicPanelForm()
+
+    # Fetch existing comic panels
+    panels = ComicPanel.objects.all()
+
+    return render(request, 'comic_generator/comic_panel.html', {'form': form, 'panels': panels})
