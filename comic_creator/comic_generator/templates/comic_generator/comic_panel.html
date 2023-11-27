@@ -1,20 +1,28 @@
-{% extends 'base.html' %}
+<!-- comic_generator/templates/comic_generator/comic_panel.html -->
 
-{% block title %}Create Comic Panel{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comic Panel</title>
+</head>
+<body>
 
-{% block content %}
-  <h2>Create Comic Panel</h2>
-  <form method="post" action="{% url 'create_comic_panel' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Generate Comic Panel</button>
-  </form>
+    <!-- Display the form for user input -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
 
-  <h2>Generated Comic Panels</h2>
-  {% for panel in panels %}
-    <div>
-      <p>{{ panel.text }}</p>
-      <img src="{{ panel.image_url }}" alt="Comic Panel">
-    </div>
-  {% endfor %}
-{% endblock %}
+    <!-- Display existing comic panels -->
+    {% for panel in panels %}
+        <div>
+            <p>{{ panel.text }}</p>
+            <img src="data:image/png;base64,{{ panel.image_url }}" alt="Comic Panel">
+        </div>
+    {% endfor %}
+
+</body>
+</html>
